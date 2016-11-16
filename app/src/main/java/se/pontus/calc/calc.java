@@ -2,6 +2,7 @@ package se.pontus.calc;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -16,15 +17,15 @@ public class calc extends AppCompatActivity {
     Button noButtons[] = new Button[noIdArr.length];
     Button operators[] = new Button[opIdArr.length];
 
-    int num1, num2;
+    float num1, num2;
     String operator;
-    float result;
+    float result = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calc);
-
+        num1=num2 = -1;
         display = (TextView)findViewById(R.id.display);
         inputs();
         operators();
@@ -46,8 +47,12 @@ public class calc extends AppCompatActivity {
             case "*":
                 result = num1 * num2;
                 break;
+            default:
+                display.setText("Error");
+                break;
         }
         display.setText(Float.toString(result));
+        num1=num2 = -1;
     }
 
     private void inputs()
@@ -67,26 +72,32 @@ public class calc extends AppCompatActivity {
     }
     private void operators()
     {
-        num1 = -1; num2 = -2;
-
         for (int i = 0; i < operators.length; i++)
         {
             final int b = i;
             operators[i] = (Button)findViewById(opIdArr[i]);
-
             operators[i].setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
-                    operator = operators[b].getText().toString();
+                    String temp = operators[b].getText().toString();
+                    if (!temp.equals("="))
+                    {
+                        operator = operators[b].getText().toString();
+                    }
                     if (num1 == -1)
                     {
-                        num1 = Integer.parseInt(display.getText().toString());
+                        num1 = Float.parseFloat(display.getText().toString());
                     }
-                    else if (num2 == -2)
+                    else if (num2 == -1)
                     {
-                        num2 = Integer.parseInt(display.getText().toString());
+                        num2 = Float.parseFloat(display.getText().toString());
                     }
-                    display.setText("");
-                    calculate();
+                    if (num1 != -1 && num2 != -1) {
+                        calculate();
+                    }
+                    else
+                    {
+                        display.setText("");
+                    }
                 }
             });
         }
