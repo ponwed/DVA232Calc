@@ -2,57 +2,75 @@ package se.pontus.calc;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.FloatProperty;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.util.Locale;
+
 public class calc extends AppCompatActivity {
 
-    TextView display;
     int[] noIdArr = {R.id.btnSeven, R.id.btnEight, R.id.btnNine, R.id.btnFour, R.id.btnFive,
             R.id.btnSix, R.id.btnOne, R.id.btnTwo, R.id.btnThree, R.id.btnZero};
     int[] opIdArr = {R.id.btnPlus, R.id.btnMinus, R.id.btnTimes, R.id.btnEq, R.id.btnDiv};
 
+    TextView display;
     Button noButtons[] = new Button[noIdArr.length];
     Button operators[] = new Button[opIdArr.length];
 
-    float num1, num2;
-    String operator;
+    String operator = "";
+    String op = "";
+
     float result = 0;
+    float leftNo, rightNo;
+
+    boolean isSet = false;
+    boolean once = false;
+    boolean toggle = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calc);
-        num1=num2 = -1;
         display = (TextView)findViewById(R.id.display);
         inputs();
-        operators();
+        operate();
     }
 
-    private void calculate()
+    private void calculate(String op)
     {
-        switch (operator)
-        {
+        boolean error = false;
+
+        switch (op) {
             case "+":
-                result = num1 + num2;
+                result = leftNo + rightNo;
                 break;
             case "-":
-                result = num1 - num2;
+                result = leftNo - rightNo;
                 break;
             case "/":
-                result = num1 / num2;
+                if (rightNo == 0.0) {
+                    error = true;
+                }
+                else {
+                    result = leftNo / rightNo;
+                }
                 break;
             case "*":
-                result = num1 * num2;
+                result = leftNo * rightNo;
                 break;
             default:
-                display.setText("Error");
+                display.setText("");
                 break;
         }
-        display.setText(Float.toString(result));
-        num1=num2 = -1;
+        if (!error) {
+            display.setText(String.format(Locale.ENGLISH, "%.2f", result));
+        }
+        else {
+            display.setText(R.string.maths_error);
+        }
     }
 
     private void inputs()
@@ -65,12 +83,16 @@ public class calc extends AppCompatActivity {
             noButtons[i].setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    if (!once) {
+                        display.setText("");
+                        once = true;
+                    }
                     display.append(noButtons[b].getText());
                 }
             });
         }
     }
-    private void operators()
+    private void operate()
     {
         for (int i = 0; i < operators.length; i++)
         {
@@ -82,22 +104,34 @@ public class calc extends AppCompatActivity {
                     if (!temp.equals("="))
                     {
                         operator = operators[b].getText().toString();
+                        Log.d("Operator 1", operator);
                     }
-                    if (num1 == -1)
+                    else if(temp.equals("="))
                     {
-                        num1 = Float.parseFloat(display.getText().toString());
+                        operator = "";
                     }
-                    else if (num2 == -1)
-                    {
-                        num2 = Float.parseFloat(display.getText().toString());
+                    if (!isSet && !toggle) {
+                        leftNo = Float.parseFloat(display.getText().toString());
+                        op = operator;
+                        Log.d("Operator 2", op);
+                        isSet = true;
                     }
-                    if (num1 != -1 && num2 != -1) {
-                        calculate();
+                    else {
+                        rightNo = Float.parseFloat(display.getText().toString());
+                        if (!toggle) {
+                            isSet = false;
+                            toggle = true;
+                        }
+                        else {
+                            leftNo = result;
+                            Log.d("Operator 3", operator);
+                        }
+                        calculate(op);
+                        op = operator;
                     }
-                    else
-                    {
-                        display.setText("");
-                    }
+                    Log.d("right", "" + rightNo);
+                    Log.d("left", "" + leftNo);
+                    once = false;
                 }
             });
         }
